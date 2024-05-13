@@ -63,6 +63,9 @@ checksum = "a47c1c47d2f5964e29c61246e81db715514cd532db6b5116a25ea3c03d6780a2"
 [[package]]
 name = "feed-forward"
 version = "0.1.0"
+dependencies = [
+ "ndarray",
+]
 
 [[package]]
 name = "getrandom"
