@@ -1,4 +1,4 @@
-workspace = { members = ["feed-forward"] }
+workspace = { members = ["feed-forward", "mnist_data"] }
 [package]
 name = "RustML"
 version = "0.1.0"
@@ -11,3 +11,5 @@ feed-forward = { path = "feed-forward" }
 ndarray = "0.15.6"
 ndarray-stats = "0.5.1"
 ndarray-linalg = "0.16.0"
+mnist = "0.6.0"
+mnist_data = { path = "mnist_data" }

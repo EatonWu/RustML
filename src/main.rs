@@ -1,3 +1,6 @@
+use mnist_data;
+
 fn main() {
-    println!("Hello, world!");
+    mnist_data::mnist_data::download_mnist_dataset().expect("TODO: panic message");
+   
 }
