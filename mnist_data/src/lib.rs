@@ -2,7 +2,7 @@ pub mod mnist_data {
     use std::fs::{File};
     use std::io;
     use std::io::Write;
-    use mnist::MnistBuilder;
+    use mnist::{Mnist, MnistBuilder};
 
     /// Downloads the MNIST dataset from a Google Drive and stores it in the data directory.
     /// The downloaded file is initially a zip file, which needs to be extracted.
@@ -14,10 +14,10 @@ pub mod mnist_data {
             std::fs::create_dir(data_dir).unwrap();
         }
 
-        let train_images = data_dir.join("train-images.idx3-ubyte");
-        let train_labels = data_dir.join("train-labels.idx1-ubyte");
-        let test_images = data_dir.join("t10k-images.idx3-ubyte");
-        let test_labels = data_dir.join("t10k-labels.idx1-ubyte");
+        let train_images = data_dir.join("train-images-idx3-ubyte");
+        let train_labels = data_dir.join("train-labels-idx1-ubyte");
+        let test_images = data_dir.join("t10k-images-idx3-ubyte");
+        let test_labels = data_dir.join("t10k-labels-idx1-ubyte");
 
         // only do this if the files do not exist
         if !train_images.exists() || !train_labels.exists() || !test_images.exists() || !test_labels.exists() {
@@ -81,6 +81,14 @@ pub mod mnist_data {
                     }
                 }
             }
+            
+            // replace periods in the name with dashes
+            for entry in std::fs::read_dir(data_dir).unwrap() {
+                let entry = entry.unwrap();
+                let path = entry.path();
+                let new_path = path.to_str().unwrap().replace(".", "-");
+                std::fs::rename(path, new_path).unwrap();
+            }
         }
         else {
             println!("MNIST dataset already exists in the data directory.");
@@ -90,14 +98,95 @@ pub mod mnist_data {
     }
 
     /// uses the MNIST crate to extract the images and labels from the dataset
-    /// returns an ndarray of the images and labels
-    pub fn get_mnist_data() -> Result<ndarray::Array2::<f64>, Box<dyn std::error::Error>>{
+    /// returns a Mnist struct of the training/testing sets and labels
+    /// This mini set contains 50 training images, 10 validation images, and 10 test images.
+    pub fn get_mini_mnist_data() -> Result<Mnist, Box<dyn std::error::Error>>{
         // download the mnist dataset
-        let res = download_mnist_dataset()?;
-
+        download_mnist_dataset()?;
         // if we get here, the dataset has been downloaded
 
-        return Ok(ndarray::Array2::<f64>::zeros((1, 1)));
+        let mnist = MnistBuilder::new()
+            .label_format_digit().training_set_length(50)
+            .validation_set_length(10)
+            .test_set_length(10)
+            .finalize();
+        // print out label data
+        return Ok(mnist);
+    }
+    
+    pub fn get_medium_mnist_data() -> Result<Mnist, Box<dyn std::error::Error>>{
+        // download the mnist dataset
+        download_mnist_dataset()?;
+        // if we get here, the dataset has been downloaded
+
+        let mnist = MnistBuilder::new()
+            .label_format_digit().training_set_length(500)
+            .validation_set_length(100)
+            .test_set_length(100)
+            .finalize();
+        
+        // print out label data
+        return Ok(mnist);
+    }
+    
+    pub fn get_large_mnist_data() -> Result<Mnist, Box<dyn std::error::Error>>{
+        // download the mnist dataset
+        download_mnist_dataset()?;
+        // if we get here, the dataset has been downloaded
+
+        let mnist = MnistBuilder::new()
+            .label_format_digit().training_set_length(5000)
+            .validation_set_length(1000)
+            .test_set_length(1000)
+            .finalize();
+        
+        // print out label data
+        return Ok(mnist);
+    }
+    
+    pub fn get_mnist_data() -> Result<Mnist, Box<dyn std::error::Error>>{
+        // download the mnist dataset
+        download_mnist_dataset()?;
+        // if we get here, the dataset has been downloaded
+
+        let mnist = MnistBuilder::new()
+            .label_format_digit().finalize();
+        
+        // print out label data
+        return Ok(mnist);
+    }
+    
+    pub fn get_some_mnist_data(training_set_size: u32, validation_set_size: u32, test_set_size: u32) -> Result<Mnist, Box<dyn std::error::Error>>{
+        // download the mnist dataset
+        download_mnist_dataset()?;
+        // if we get here, the dataset has been downloaded
+
+        let mnist = mnist::MnistBuilder::new()
+            .label_format_digit()
+            .training_set_length(training_set_size)
+            .validation_set_length(validation_set_size)
+            .test_set_length(test_set_size)
+            .finalize();
+        // print out label data
+        return Ok(mnist);
+    }
+    
+    /// This converts a 1 dimensional vector of u8s to a 3D ndarray,
+    /// where each 'row' contains an image of 28x28 pixels.
+    pub fn convert_mnist_images_to_ndarray3(mnist_vec: Vec<u8>) -> ndarray::Array3<u8>{
+        // get number of images in mnist_vec:
+        let image_quantity = mnist_vec.len() / 784;
+        let mnist_array = ndarray::Array3::<u8>::from_shape_vec((image_quantity, 28, 28), mnist_vec).unwrap();
+        mnist_array
+    }
+    /// This converts a 1 dimensional vector of u8s to a 2D ndarray,
+    /// where each row represents an image and each column represents a pixel.
+    /// This one is likely more useful for our purposes.
+    pub fn convert_mnist_images_to_ndarray2(mnist_vec: Vec<u8>) -> ndarray::Array2<u8>{
+        // get number of images in mnist_vec:
+        let image_quantity = mnist_vec.len() / 784;
+        let mnist_array = ndarray::Array2::<u8>::from_shape_vec((image_quantity, 784), mnist_vec).unwrap();
+        mnist_array
     }
 
 }
