@@ -29,7 +29,7 @@ fn main() {
     }
     
     // normalize the image
-    // let normalized_images = Perceptron::normalize(images.mapv(|x| x as f64));
+    let normalized_images = Perceptron::normalize(images.mapv(|x| x as f64));
     
     // train the model
     // let mut model = Perceptron::new(784);

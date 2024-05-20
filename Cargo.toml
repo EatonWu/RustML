@@ -9,7 +9,5 @@ edition = "2021"
 [dependencies]
 feed-forward = { path = "feed-forward" }
 ndarray = "0.15.6"
-ndarray-stats = "0.5.1"
-ndarray-linalg = "0.16.0"
 mnist = "0.6.0"
 mnist_data = { path = "mnist_data" }
