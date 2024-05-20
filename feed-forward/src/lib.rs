@@ -55,12 +55,12 @@ pub mod perceptron {
         ///         ii.) otherwise, we update weights by multiplying the feature by a - predict(x).
         ///
         /// The samples are organized as rows, with the last column being the ground truth.
-        pub fn train(&mut self, training_data: ndarray::Array2<f64>, n: usize) {
+        pub fn train(&mut self, training_data: ndarray::Array2<f64>, n_iterations: usize) {
             // we find the highest and lowest values, and normalize:
             let normalized_data = Self::normalize(training_data);
 
             // we iterate over the training data N times, or until the weights don't change
-            for _ in 0..n {
+            for _ in 0..n_iterations {
                 let prev_weights = self.weights.clone();
                 // for each row/sample in the normalized data, we separate out the ground truth
                 for row in normalized_data.rows() {
