@@ -1,10 +1,15 @@
 pub mod perceptron {
     use ndarray::{ArrayView, Ix1, s};
+    use rand::prelude::SliceRandom;
 
     /// Stores state of the binary classifier; perceptrons are also known as linear units.
     pub struct Perceptron {
        weights: ndarray::Array1<f64>,
        bias: f64,
+    }
+
+    pub fn correct_labels(labels: &Vec<u8>, class: u8) -> Vec<u8> {
+        labels.iter().map(|&x| if x == class { 1 } else { 0 }).collect::<Vec<u8>>()
     }
 
     impl Perceptron {
@@ -19,10 +24,11 @@ pub mod perceptron {
         /// gives a binary output (0 or 1) depending on the calculated output
         /// We use ArrayView to avoid copying the data and get some compile-time guarantees
         /// about input dimensionality.
-        pub fn predict(&self, input: ArrayView<f64, Ix1>) -> f64 {
+        /// Returns the prediction as well as the linear unit output (confidence?)
+        pub fn predict(&self, input: ArrayView<f64, Ix1>) -> (f64, f64) {
             let mut linear_unit_output = self.weights.dot(&input);
             linear_unit_output += self.bias;
-            if linear_unit_output > 0f64 { 1f64 } else { 0f64 }
+            return (if linear_unit_output > 0f64 { 1f64 } else { 0f64 }, linear_unit_output);
         }
 
         /// Given a set of data, normalizes the data to be between 0.0 and 1.0
@@ -68,7 +74,7 @@ pub mod perceptron {
                     // println!("Row {}: {:?}", idx, row.clone());
                     let x = row.clone(); // the sample
                     let a = training_labels[idx] as f64; // the ground truth
-                    let prediction = self.predict(x);
+                    let (prediction, _) = self.predict(x);
                     if a - prediction == 0f64 { // if the prediction is correct, we continue
                         // println!("Prediction {} was correct, continuing", prediction);
                         continue;
@@ -94,13 +100,83 @@ pub mod perceptron {
             let normalized_validation_images = Self::normalize(validation_images);
             let mut correct_predictions = 0;
             for (idx, row) in normalized_validation_images.outer_iter().enumerate() {
-                let prediction = self.predict(row);
+                let (prediction, _) = self.predict(row);
                 if prediction == validation_labels[idx] as f64 {
                     correct_predictions += 1;
                 }
             }
             println!("Accuracy: {}", correct_predictions as f64 / validation_labels.len() as f64);
         }
+    }
 
+    // multi-class perceptrons
+    pub struct MultiClassPerceptron {
+        perceptrons: Vec<Perceptron>,
+        classes: Vec<i32>
+    }
+
+    impl MultiClassPerceptron {
+        pub fn new(classes: Vec<i32>, num_features: usize) -> MultiClassPerceptron {
+            let mut perceptrons = vec![];
+            for _ in 0..classes.len() {
+                perceptrons.push(Perceptron::new(num_features));
+            }
+            MultiClassPerceptron {
+                perceptrons,
+                classes,
+            }
+        }
+
+        pub fn train(&mut self, training_data: &ndarray::Array2<u8>, training_labels: &Vec<u8>, n_iterations: usize) {
+            for i in 0..self.classes.len() {
+                let mut perceptron = &mut self.perceptrons[i];
+                // create the corrected labels
+                let corrected_labels = correct_labels(training_labels, self.classes[i] as u8);
+                // train the perceptron
+                perceptron.train(training_data, &corrected_labels, n_iterations);
+            }
+        }
+
+        pub fn predict(&self, input: ArrayView<f64, Ix1>) -> usize {
+            let mut predictions: Vec<(f64, f64)> = vec![];
+            for perceptron in &self.perceptrons {
+                predictions.push(perceptron.predict(input));
+            }
+            // println!("Predictions: {:?}", predictions);
+
+            let ones = predictions.iter().filter(|(prediction, confidence)| *prediction == 1f64).collect::<Vec<_>>();
+            return if ones.len() == 0 {
+                // return the class with the lowest confidence
+                let (idx, _) = predictions.iter().enumerate().min_by(|(_, (_, confidence1)), (_, (_, confidence2))| confidence1.partial_cmp(confidence2).unwrap()).unwrap();
+                self.classes[idx] as usize
+            } else {
+                // return the index of the 1 prediction with the highest confidence
+                let (idx, _) = ones.iter().enumerate().max_by(|(_, (_, confidence1)), (_, (_, confidence2))| confidence1.partial_cmp(confidence2).unwrap()).unwrap();
+                self.classes[idx] as usize
+            }
+        }
+
+        pub fn validate(&self, validation_images: &ndarray::Array2<u8>, validation_labels: &Vec<u8>) {
+            let normalized_validation_images = Perceptron::normalize(validation_images);
+            let mut correct_predictions = 0;
+
+            // iterate over each validation sample
+            for (idx, row) in normalized_validation_images.outer_iter().enumerate() {
+                // println!("Label: {}", validation_labels[idx] as usize);
+                let prediction = self.predict(row);
+                if prediction == validation_labels[idx] as usize {
+                    correct_predictions += 1;
+                }
+            }
+
+            println!("Accuracy: {}", correct_predictions as f64 / validation_labels.len() as f64);
+        }
+
+        pub fn validate_nth_perceptron(&self, class_idx: usize, validation_images: &ndarray::Array2<u8>, validation_labels: &Vec<u8>) {
+            let perceptron = &self.perceptrons[class_idx];
+            // correct the validation label
+            let corrected_labels = correct_labels(validation_labels, self.classes[class_idx] as u8);
+            perceptron.validate(validation_images, &corrected_labels);
+        }
     }
 }

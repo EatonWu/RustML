@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 ndarray = "0.15.6"
 mnist_data = {path = "../mnist_data"}
+rand = "0.8.5"
