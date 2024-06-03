@@ -5,7 +5,7 @@ use mnist_data;
 use mnist_data::mnist_data::*;
 
 fn main() {
-    let mnist = get_mnist_data();
+    let mnist = get_large_mnist_data();
     match &mnist {
         Ok(_) => {
             // println!("Mini Mnist Data: {:?}", mnist);

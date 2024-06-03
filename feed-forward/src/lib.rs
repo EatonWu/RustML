@@ -71,20 +71,23 @@ pub mod perceptron {
                 let prev_weights = self.weights.clone();
                 for (idx, row) in normalized_data.outer_iter().enumerate() {
                     // cloning a slice turns the view into an owned array
-                    // println!("Row {}: {:?}", idx, row.clone());
                     let x = row.clone(); // the sample
                     let a = training_labels[idx] as f64; // the ground truth
+                    let learning_rate = 0.1f64;
                     let (prediction, _) = self.predict(x);
                     if a - prediction == 0f64 { // if the prediction is correct, we continue
-                        // println!("Prediction {} was correct, continuing", prediction);
                         continue;
                     }
-                    // prediction was incorrect, update weights
-                    if prediction == 0f64 && a == 1f64 { // false negative
-                        self.weights += &x;
-                    } else if prediction == 1f64 && a == 0f64 { // false positive
-                        self.weights -= &x;
-                    }
+                    // // prediction was incorrect, update weights
+                    // if prediction == 0f64 && a == 1f64 { // false negative
+                    //     self.weights += &x;
+                    // } else if prediction == 1f64 && a == 0f64 { // false positive
+                    //     self.weights -= &x;
+                    // }
+
+                    let delta_w = &x * (a - prediction) * learning_rate;
+                    let new_weight = self.weights.clone() + delta_w;
+                    self.weights = new_weight;
                 }
                 // if the weights haven't changed, we break out of the loop
                 if prev_weights == self.weights {
