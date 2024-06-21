@@ -82,8 +82,10 @@ pub mod perceptron {
                     // prediction was incorrect, update weights
                     if prediction == 0f64 && a == 1f64 { // false negative
                         self.weights += &x;
+                        self.bias += 1f64;
                     } else if prediction == 1f64 && a == 0f64 { // false positive
                         self.weights -= &x;
+                        self.bias -= 1f64;
                     }
                 }
                 // if the weights haven't changed, we break out of the loop
@@ -178,5 +180,22 @@ pub mod perceptron {
             let corrected_labels = correct_labels(validation_labels, self.classes[class_idx] as u8);
             perceptron.validate(validation_images, &corrected_labels);
         }
+    }
+}
+
+pub mod cross_entropy {
+    use ndarray::{ArrayView, Ix1};
+
+    // Given some logit output from a neural network, we can calculate
+    // the cross entropy loss.
+    pub fn softmax(x: ArrayView<f64, Ix1>) -> ndarray::Array1<f64> {
+        let mut exps = x.mapv(|x| x.exp()); // e ^ logit
+        let sum: f64 = exps.iter().sum(); // sum of all normalized logits
+        if sum == 0f64 {
+            println!("Sum of exps is 0, returning exps");
+            return exps;
+        }
+        exps /= sum;
+        exps
     }
 }
