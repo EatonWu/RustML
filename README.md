@@ -13,7 +13,7 @@ My goal is to complete one chapter of the book a week.
 
 [ X ] denotes a complete chapter finished on (MM/DD/YYYY)
 
-1. Feed Forward Neural Nets [ O ] (05/13/2024)
+1. Feed Forward Neural Nets [ X ] (07/13/2024)
 2. TensorFlow [ ]
 3. Convolutional Neural Networks [ ]
 4. Word Embeddings and Recurrent Neural networks [ ]
