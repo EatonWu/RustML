@@ -1,6 +1,5 @@
 pub mod perceptron {
-    use ndarray::{ArrayView, Ix1, s};
-    use rand::prelude::SliceRandom;
+    use ndarray::{ArrayView, Ix1};
 
     /// Stores state of the binary classifier; perceptrons are also known as linear units.
     pub struct Perceptron {

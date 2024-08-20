@@ -1,4 +1,4 @@
-workspace = { members = ["feed-forward", "mnist_data"] }
+workspace = { members = ["feed-forward", "mnist_data", "charniak_tensorflow", "word2vec"] }
 [package]
 name = "RustML"
 version = "0.1.0"
